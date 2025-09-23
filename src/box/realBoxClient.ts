@@ -42,6 +42,46 @@ export class RealBoxClient implements IBoxClient {
     return null;
   }
 
+  async resolveFolderPath(path: string): Promise<string | null> {
+    const parts = path.split('/').filter(Boolean);
+    let currentId = '0';
+    for (const name of parts) {
+      const folderId = await this.findChildFolder(currentId, name);
+      if (!folderId) return null;
+      currentId = folderId;
+    }
+    return currentId;
+  }
+
+  async listFolderItems(folderId: string) {
+    const entries: any[] = [];
+    let offset = 0;
+    const limit = 1000;
+    while (true) {
+      const items = await this.client.folders.getFolderItems(folderId, { queryParams: { offset, limit, fields: ['id', 'name', 'type', 'size', 'modified_at'] } });
+      const arr = (items as any).entries ?? [];
+      for (const it of arr) {
+        if (it.type === 'folder') entries.push({ id: it.id, name: it.name, type: 'folder', modified: it.modified_at });
+        if (it.type === 'file') entries.push({ id: it.id, name: it.name, type: 'file', size: it.size, modified: it.modified_at });
+      }
+      if (arr.length < limit) break;
+      offset += limit;
+    }
+    return entries;
+  }
+
+  async moveFolder(folderId: string, newParentId: string) {
+    await (this.client.folders as any).updateFolderById(folderId, { parent: { id: newParentId } });
+  }
+
+  async renameFolder(folderId: string, newName: string) {
+    await (this.client.folders as any).updateFolderById(folderId, { name: newName });
+  }
+
+  async deleteFolder(folderId: string, recursive: boolean = true) {
+    await (this.client.folders as any).deleteFolderById(folderId, { queryParams: { recursive } });
+  }
+
   async checkFileExists(parentId: string, fileName: string) {
     let offset = 0;
     const limit = 1000;

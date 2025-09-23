@@ -20,6 +20,11 @@ export interface BoxClient {
   uploadFile(parentId: string, fileName: string, content: Buffer): Promise<{ id: string; size: number }>;
   getFileByPath(path: string): Promise<{ id: string; name: string; size: number; content: Buffer } | null>;
   getFileContent(fileId: string): Promise<Buffer>;
+  resolveFolderPath(path: string): Promise<string | null>;
+  listFolderItems(folderId: string): Promise<readonly { id: string; name: string; type: 'file' | 'folder'; size?: number; modified?: string }[]>;
+  moveFolder(folderId: string, newParentId: string): Promise<void>;
+  renameFolder(folderId: string, newName: string): Promise<void>;
+  deleteFolder(folderId: string, recursive?: boolean): Promise<void>;
 }
 
 export interface JsonRpcRequest {
