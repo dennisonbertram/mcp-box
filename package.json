@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "*",
-    "@box/sdk-gen": "*",
     "dotenv": "*",
     "winston": "*"
   },
@@ -23,6 +22,7 @@
     "@types/node": "*",
     "eslint": "*",
     "jest": "*",
+    "jest-junit": "*",
     "ts-jest": "*",
     "ts-node": "*",
     "typescript": "*"
