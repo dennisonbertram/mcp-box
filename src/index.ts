@@ -1,14 +1,8 @@
 import 'dotenv/config';
-import { InMemoryBoxClient } from './box/boxClient.js';
+import { createBoxClient } from './box/factory.js';
 import { McpServer } from './server.js';
 import { saveDocumentsTool } from './tools/saveDocuments.js';
 import { readDocumentTool } from './tools/readDocument.js';
-
-const box = new InMemoryBoxClient();
-const server = new McpServer({
-  tools: [saveDocumentsTool, readDocumentTool],
-  context: { box, env: process.env }
-});
 
 process.stdin.setEncoding('utf8');
 let buffer = '';
@@ -26,7 +20,15 @@ process.stdin.on('data', async (chunk) => {
     if (!line) continue;
     try {
       const req = JSON.parse(line);
-      const res = await server.handle(req);
+      // Lazy boot to ensure client ready
+      if (!(globalThis as any).__server) {
+        (globalThis as any).__server = await (async () => {
+          const box = await createBoxClient(process.env);
+          return new McpServer({ tools: [saveDocumentsTool, readDocumentTool], context: { box, env: process.env } });
+        })();
+      }
+      const srv = (globalThis as any).__server as McpServer;
+      const res = await srv.handle(req);
       send(res);
     } catch (e: any) {
       send({ jsonrpc: '2.0', id: null, error: { code: -32700, message: e?.message || 'Parse error' } });
