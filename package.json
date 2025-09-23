@@ -5,6 +5,7 @@
   "type": "module",
   "description": "An MCP server to interact with Box (intent-based tools)",
   "scripts": {
+    "pretest": "npm run build",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "dev": "node --loader ts-node/esm src/index.ts",
