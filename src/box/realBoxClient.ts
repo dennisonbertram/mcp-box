@@ -136,6 +136,50 @@ export class RealBoxClient implements IBoxClient {
     });
     return Buffer.concat(chunks);
   }
+
+  async searchContent(params: {
+    query?: string;
+    type?: 'file' | 'folder' | 'all';
+    extensions?: string[];
+    folders?: string[];
+    includeContent?: boolean;
+    includeTrashed?: boolean;
+    limit?: number;
+    sortBy?: 'relevance' | 'modified_at';
+    direction?: 'DESC' | 'ASC';
+  }) {
+    // Map to Box SearchForContentQueryParams (per Box docs via Context7)
+    const q: any = {};
+    if (params.query) q.query = params.query;
+    if (params.type && params.type !== 'all') q.type = params.type;
+    if (params.extensions?.length) q.fileExtensions = params.extensions;
+    if (params.limit) q.limit = params.limit;
+    if (params.sortBy) q.sort = params.sortBy;
+    if (params.direction && params.sortBy === 'modified_at') q.direction = params.direction;
+    q.trashContent = params.includeTrashed ? 'all_items' : 'non_trashed_only';
+    if (params.folders?.length) {
+      const ids: string[] = [];
+      for (const p of params.folders) {
+        const id = await this.resolveFolderPath(p);
+        if (id) ids.push(id);
+      }
+      if (ids.length) q.ancestorFolderIds = ids;
+    }
+    const res: any = await this.client.search.searchForContent(q);
+    const entries = (res.entries || []).map((item: any) => {
+      const type = item.type as 'file' | 'folder' | 'web_link';
+      const path = item.pathCollection?.entries?.map((e: any) => e.name).join('/') || undefined;
+      return {
+        id: item.id,
+        type: type === 'web_link' ? 'file' : (type as any),
+        name: item.name,
+        path,
+        size: item.size,
+        modified: item.modifiedAt || item.contentModifiedAt
+      };
+    });
+    return { totalCount: res.totalCount || entries.length, entries };
+  }
 }
 
 export default RealBoxClient;

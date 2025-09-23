@@ -25,6 +25,17 @@ export interface BoxClient {
   moveFolder(folderId: string, newParentId: string): Promise<void>;
   renameFolder(folderId: string, newName: string): Promise<void>;
   deleteFolder(folderId: string, recursive?: boolean): Promise<void>;
+  searchContent(params: {
+    query?: string;
+    type?: 'file' | 'folder' | 'all';
+    extensions?: string[];
+    folders?: string[]; // paths
+    includeContent?: boolean;
+    includeTrashed?: boolean;
+    limit?: number;
+    sortBy?: 'relevance' | 'modified_at';
+    direction?: 'DESC' | 'ASC';
+  }): Promise<{ totalCount: number; entries: { id: string; type: 'file' | 'folder'; name: string; path?: string; size?: number; modified?: string }[] }>;
 }
 
 export interface JsonRpcRequest {
