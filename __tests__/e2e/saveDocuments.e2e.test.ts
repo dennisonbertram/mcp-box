@@ -2,6 +2,10 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 
 function runServerWith(input: any): Promise<any> {
+  return runServerSession([input]).then((arr) => arr[0]);
+}
+
+function runServerSession(inputs: any[]): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const node = process.execPath;
     const entry = path.join(process.cwd(), 'dist', 'index.js');
@@ -15,15 +19,17 @@ function runServerWith(input: any): Promise<any> {
     child.on('error', reject);
     child.on('close', () => {
       try {
-        const lines = out.trim().split('\n');
-        const last = JSON.parse(lines[lines.length - 1] || '{}');
-        resolve(last);
+        const lines = out.trim().split('\n').filter(Boolean);
+        const results = lines.map((l) => JSON.parse(l));
+        resolve(results);
       } catch (e) {
         reject(new Error('Failed to parse server output: ' + err));
       }
     });
 
-    child.stdin.write(JSON.stringify(input) + '\n');
+    for (const req of inputs) {
+      child.stdin.write(JSON.stringify(req) + '\n');
+    }
     child.stdin.end();
   });
 }
@@ -50,5 +56,35 @@ describe('MCP stdio e2e', () => {
     const res = await runServerWith(call);
     expect(res.result.success).toBe(true);
     expect(res.result.saved).toBe(1);
+  });
+
+  test('tools/call box_read_document reads that file', async () => {
+    const save = {
+      jsonrpc: '2.0',
+      id: 3,
+      method: 'tools/call',
+      params: {
+        name: 'box_save_documents',
+        arguments: {
+          documents: [{ content: 'content', path: 'E2E/b.txt' }],
+          options: { createFolders: true, overwrite: true }
+        }
+      }
+    };
+
+    const read = {
+      jsonrpc: '2.0',
+      id: 4,
+      method: 'tools/call',
+      params: {
+        name: 'box_read_document',
+        arguments: { path: 'E2E/b.txt' }
+      }
+    };
+
+    const [saveRes, readRes] = await runServerSession([save, read]);
+    expect(saveRes.result.success).toBe(true);
+    expect(readRes.result.success).toBe(true);
+    expect(readRes.result.content).toBe('content');
   });
 });

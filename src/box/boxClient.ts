@@ -50,4 +50,25 @@ export class InMemoryBoxClient implements IBoxClient {
     this.files.set(id, { id, parentId, name: fileName, content, size });
     return { id, size };
   }
+
+  async getFileByPath(path: string) {
+    const parts = path.split('/').filter(Boolean);
+    const fileName = parts.pop();
+    if (!fileName) return null;
+    // Walk folders
+    let parentId = '0';
+    for (const part of parts) {
+      const next = [...this.folders.values()].find((f) => f.parentId === parentId && f.name === part);
+      if (!next) return null;
+      parentId = next.id;
+    }
+    const file = [...this.files.values()].find((f) => f.parentId === parentId && f.name === fileName);
+    return file ? { id: file.id, name: file.name, size: file.size, content: file.content } : null;
+  }
+
+  async getFileContent(fileId: string) {
+    const f = this.files.get(fileId);
+    if (!f) throw new Error('File not found');
+    return f.content;
+  }
 }

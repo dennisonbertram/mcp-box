@@ -2,10 +2,11 @@ import 'dotenv/config';
 import { InMemoryBoxClient } from './box/boxClient.js';
 import { McpServer } from './server.js';
 import { saveDocumentsTool } from './tools/saveDocuments.js';
+import { readDocumentTool } from './tools/readDocument.js';
 
 const box = new InMemoryBoxClient();
 const server = new McpServer({
-  tools: [saveDocumentsTool],
+  tools: [saveDocumentsTool, readDocumentTool],
   context: { box, env: process.env }
 });
 

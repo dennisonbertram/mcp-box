@@ -18,6 +18,8 @@ export interface BoxClient {
   ensureFolderPath(path: string, description?: string): Promise<string>;
   checkFileExists(parentId: string, fileName: string): Promise<{ id: string; size: number } | null>;
   uploadFile(parentId: string, fileName: string, content: Buffer): Promise<{ id: string; size: number }>;
+  getFileByPath(path: string): Promise<{ id: string; name: string; size: number; content: Buffer } | null>;
+  getFileContent(fileId: string): Promise<Buffer>;
 }
 
 export interface JsonRpcRequest {
