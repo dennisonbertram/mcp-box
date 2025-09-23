@@ -1,0 +1,30 @@
+{
+  "name": "box-mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "An MCP server to interact with Box (intent-based tools)",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "*",
+    "@box/sdk-gen": "*",
+    "dotenv": "*",
+    "winston": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "*",
+    "@types/node": "*",
+    "eslint": "*",
+    "jest": "*",
+    "ts-jest": "*",
+    "ts-node": "*",
+    "typescript": "*"
+  }
+}
