@@ -13,7 +13,7 @@ export default {
   },
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
-    '^(.*)\\.js$': '$1'
+    '^(\\.{1,2}/.*)\\.js$': '$1'
   },
   globals: {},
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],

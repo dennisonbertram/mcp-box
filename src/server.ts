@@ -28,14 +28,25 @@ export class McpServer {
     try {
       switch (req.method) {
         case 'initialize':
-          return { jsonrpc: '2.0', id, result: { protocol: 'MCP', capabilities: { tools: true } } };
-        case 'tools/list':
-          return { jsonrpc: '2.0', id, result: { tools: this.listTools() } };
+          // Build compliant result
+          const initResult = {
+            protocolVersion: '2025-03-26',
+            capabilities: { tools: { listChanged: false } },
+            serverInfo: { name: 'box-mcp-server', version: '0.1.0' }
+          };
+          return { jsonrpc: '2.0', id, result: initResult };
+        case 'tools/list': {
+          const result = { tools: this.listTools() };
+          return { jsonrpc: '2.0', id, result };
+        }
         case 'tools/call': {
           const name = req.params?.name;
           const args = req.params?.arguments ?? {};
-          const res = await this.callTool(String(name), args);
-          return { jsonrpc: '2.0', id, result: res };
+          const raw = await this.callTool(String(name), args);
+          // Ensure result conforms to CallToolResultSchema; wrap as text content otherwise
+          let result: any;
+          result = { content: [{ type: 'text', text: JSON.stringify(raw) }], ...raw };
+          return { jsonrpc: '2.0', id, result };
         }
         default:
           return { jsonrpc: '2.0', id, error: { code: -32601, message: 'Method not found' } };
