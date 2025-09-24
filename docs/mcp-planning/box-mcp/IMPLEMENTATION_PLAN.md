@@ -140,14 +140,14 @@ MCP Objects
 ```json
 {
   "@modelcontextprotocol/sdk": "*",
-  "@box/sdk-gen": "*",
+  "box-node-sdk": "*",
   "dotenv": "*",
   "winston": "*"
 }
 ```
 
 Notes
-- Use Box TypeScript SDK v10 (published as `@box/sdk-gen`) for latest API coverage (v2025.0) and strong typing.
+- Use Box Node SDK v10 ESM (`box-node-sdk`) for current API (v2025.0) coverage and generated managers (folders, uploads, downloads, search, sharedLinks*, userCollaborations).
 - Pin exact versions in `package.json` during implementation; keep SDKs up to date via Dependabot.
 
 ### Development Stack
