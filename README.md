@@ -77,18 +77,98 @@ NODE_ENV=development
 ### Authentication Setup
 
 #### OAuth 2.0 (Recommended for individual use)
+
+**Step 1: Box Developer Console Setup**
+
+1. **Go to Box Developer Console**: https://developer.box.com/
+2. **Create Custom App**:
+   - Click "Create New App"
+   - Select "Custom App"
+   - Choose **"User Authentication (OAuth 2.0)"**
+   - Name your app (e.g., "MCP Box Server")
+
+3. **Configure OAuth Settings**:
+   - **Redirect URI**: `http://localhost:3000/auth/callback`
+   - **Application Scopes**: Select all needed permissions:
+     - ✅ Read all files and folders
+     - ✅ Write all files and folders
+     - ✅ Manage users
+     - ✅ Manage enterprise properties
+   - **Save** your configuration
+
+4. **Get Credentials**:
+   - Copy **Client ID**
+   - Copy **Client Secret**
+
+**Step 2: Configure Your .env File**
+
+```env
+# OAuth 2.0 Configuration
+AUTH_TYPE=oauth
+BOX_CLIENT_ID=your_client_id_here
+BOX_CLIENT_SECRET=your_client_secret_here
+
+# Server Configuration
+MCP_TRANSPORT=stdio
+LOG_LEVEL=info
+NODE_ENV=development
+```
+
+**Step 3: First-Time Authentication**
+
 ```bash
-# The server will guide you through OAuth flow on first use
+# Build and start the server
+npm run build
 npm start
 ```
 
+**What happens:**
+1. Server detects no stored OAuth tokens
+2. Opens browser to Box login page automatically
+3. You log in with your Box credentials
+4. Box redirects back with authorization code
+5. Server exchanges code for access/refresh tokens
+6. Tokens are securely stored for future use
+
 #### Client Credentials Grant (Enterprise)
+
+**Step 1: Box Developer Console Setup**
+
+1. **Go to Box Developer Console**: https://developer.box.com/
+2. **Create Custom App**:
+   - Click "Create New App"
+   - Select "Custom App"
+   - Choose **"Server Authentication (Client Credentials Grant)"**
+   - Name your app (e.g., "MCP Box Server Enterprise")
+
+3. **Configure CCG Settings**:
+   - **Application Scopes**: Select enterprise permissions needed
+   - **Enterprise ID**: Note your enterprise ID
+   - **Submit for Approval**: Enterprise admin must approve
+
+4. **Get Credentials**:
+   - Copy **Client ID**
+   - Copy **Client Secret**
+   - Copy **Enterprise ID**
+
+**Step 2: Configure Your .env File**
+
 ```env
+# CCG Configuration
 AUTH_TYPE=ccg
-BOX_CLIENT_ID=your_app_id
-BOX_CLIENT_SECRET=your_app_secret
+BOX_CLIENT_ID=your_client_id
+BOX_CLIENT_SECRET=your_client_secret
 BOX_ENTERPRISE_ID=your_enterprise_id
+
+# Server Configuration
+MCP_TRANSPORT=stdio
+LOG_LEVEL=info
+NODE_ENV=production
 ```
+
+**Step 3: Enterprise Admin Approval**
+- Enterprise admin must approve the app in Box Admin Console
+- Once approved, server will authenticate automatically
 
 ## Integration Guides
 
@@ -316,9 +396,38 @@ mcp-box/
 ## Troubleshooting
 
 ### Authentication Issues
-- **OAuth Flow**: Ensure redirect URL matches Box app configuration
+
+#### OAuth 2.0 Troubleshooting
+- **Browser doesn't open automatically?**
+  ```bash
+  # Manual OAuth URL will be displayed in console
+  # Copy and paste into browser
+  ```
+- **"Invalid redirect URI" error?**
+  - Check Box app configuration matches your server settings
+  - Ensure redirect URI is exactly: `http://localhost:3000/auth/callback`
+  - Verify no trailing slashes or extra characters
+- **"Access denied" during login?**
+  - Check Box app has correct scopes enabled
+  - Verify user has access to requested files/folders
+  - Ensure app is not disabled in Box Admin Console
+- **Tokens not persisting?**
+  - Check file system permissions for token storage
+  - Verify `.env` file has correct credentials
+  - Try deleting stored tokens and re-authenticating
+
+#### CCG Troubleshooting
 - **CCG Setup**: Verify enterprise ID and app approval status
+- **"App not authorized" error?**
+  - Enterprise admin must approve app in Box Admin Console
+  - Check enterprise ID matches exactly
+  - Verify app has required scopes enabled
 - **Token Refresh**: Check credential storage permissions
+
+#### General Auth Issues
+- **"Invalid client" errors**: Double-check Client ID and Client Secret
+- **"Unauthorized" responses**: Verify auth method matches Box app type
+- **Token refresh failures**: Check network connectivity and Box API status
 
 ### Common Errors
 - **File Not Found**: Use `box_search_content` to find correct file paths
