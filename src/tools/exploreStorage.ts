@@ -68,13 +68,21 @@ export const exploreStorageTool: ToolDefinition = {
       }
     }
   },
+  outputSchema: {
+    type: 'object',
+    properties: {
+      path: { type: 'string' },
+      tree: { type: 'object' }
+    },
+    required: ['path', 'tree']
+  },
   handler: async (args: any, context: ToolContext) => {
     const path = args.path || '/';
     try {
       const folderId = path === '/' ? '0' : await context.box.resolveFolderPath(path);
       if (!folderId) throw new Error(`Path not found: ${path}`);
       const tree = await buildTree(context.box, folderId, path, 0, args.options || {});
-      return { success: true, path, tree };
+      return { success: true, structuredContent: { path, tree }, path, tree };
     } catch (err: any) {
       return { success: false, error: err?.message || String(err) };
     }

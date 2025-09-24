@@ -162,6 +162,48 @@ export class RealBoxClient implements IBoxClient {
     return { added };
   }
 
+  async updateSharedLink(params: { itemType: 'file' | 'folder'; itemId: string; access?: 'open' | 'company' | 'collaborators'; password?: string | null; canDownload?: boolean; unsharedAt?: string | null }) {
+    const body: any = { sharedLink: { access: params.access, password: params.password ?? undefined, unsharedAt: params.unsharedAt ?? undefined, permissions: { canDownload: params.canDownload } } };
+    if (params.itemType === 'file') {
+      const res: any = await (this.client.sharedLinksFiles as any).updateSharedLinkOnFile(params.itemId, body, { fields: 'shared_link' });
+      return { url: res.sharedLink?.url, access: res.sharedLink?.access, unsharedAt: res.sharedLink?.unsharedAt };
+    } else {
+      const res: any = await (this.client.sharedLinksFolders as any).updateSharedLinkOnFolder(params.itemId, body, { fields: 'shared_link' });
+      return { url: res.sharedLink?.url, access: res.sharedLink?.access, unsharedAt: res.sharedLink?.unsharedAt };
+    }
+  }
+
+  async removeSharedLink(params: { itemType: 'file' | 'folder'; itemId: string }) {
+    const body: any = { sharedLink: null };
+    if (params.itemType === 'file') {
+      await (this.client.sharedLinksFiles as any).removeSharedLinkFromFile(params.itemId, body, { fields: 'shared_link' });
+    } else {
+      await (this.client.sharedLinksFolders as any).removeSharedLinkFromFolder(params.itemId, body, { fields: 'shared_link' });
+    }
+    return { removed: true };
+  }
+
+  async updateCollaborators(params: { itemType: 'file' | 'folder'; itemId: string; updates: { email: string; role?: string; remove?: boolean }[] }) {
+    const updated: any[] = [];
+    // Fetch existing collaborations on item
+    const listMgr: any = this.client.listCollaborations;
+    const collabs: any = params.itemType === 'file'
+      ? await listMgr.getFileCollaborations(params.itemId, {})
+      : await listMgr.getFolderCollaborations(params.itemId, {});
+    for (const u of params.updates) {
+      const match = (collabs.entries || []).find((c: any) => c.accessibleBy?.login === u.email);
+      if (!match) continue;
+      if (u.remove) {
+        await (this.client.userCollaborations as any).deleteCollaborationById(match.id, {});
+        updated.push({ email: u.email, removed: true });
+      } else if (u.role) {
+        const res = await (this.client.userCollaborations as any).updateCollaborationById(match.id, { role: u.role });
+        updated.push({ email: u.email, role: res?.role || u.role });
+      }
+    }
+    return { updated };
+  }
+
   async aiTextGen(params: { prompt: string; fileId: string; dialogueHistory?: { prompt: string; answer?: string }[] }) {
     const res: any = await (this.client.ai as any).createAiTextGen({
       prompt: params.prompt,

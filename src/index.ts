@@ -8,6 +8,9 @@ import { exploreStorageTool } from './tools/exploreStorage.js';
 import { searchContentTool } from './tools/searchContent.js';
 import { shareContentTool } from './tools/shareContent.js';
 import { analyzeDocumentTool } from './tools/analyzeDocument.js';
+import { updateSharedLinkTool } from './tools/updateSharedLink.js';
+import { removeSharedLinkTool } from './tools/removeSharedLink.js';
+import { updateCollaboratorsTool } from './tools/updateCollaborators.js';
 
 const transport = process.env.MCP_TRANSPORT || 'stdio';
 
@@ -15,7 +18,19 @@ if (transport === 'http') {
   // Minimal HTTP JSON-RPC endpoint + SSE keepalive
   const http = await import('node:http');
   const server = http.createServer(async (req, res) => {
+    const requiredToken = process.env.AUTH_TOKEN || process.env.MCP_BEARER_TOKEN;
+    const okAuth = () => {
+      if (!requiredToken) return true;
+      const auth = req.headers['authorization'];
+      if (!auth || !auth.startsWith('Bearer ')) return false;
+      const tok = auth.slice('Bearer '.length);
+      return tok === requiredToken;
+    };
     if (req.method === 'POST' && (req.url === '/' || req.url === '/rpc' || req.url === '/mcp')) {
+      if (!okAuth()) {
+        res.writeHead(401);
+        return res.end(JSON.stringify({ error: 'Unauthorized' }));
+      }
       let body = '';
       req.on('data', (chunk) => (body += chunk));
       req.on('end', async () => {
@@ -23,7 +38,7 @@ if (transport === 'http') {
           const data = JSON.parse(body || '{}');
           if (!(globalThis as any).__server) {
             const box = await createBoxClient(process.env);
-            (globalThis as any).__server = new McpServer({ tools: [saveDocumentsTool, readDocumentTool, manageFoldersTool, exploreStorageTool, searchContentTool, shareContentTool, analyzeDocumentTool], context: { box, env: process.env } });
+            (globalThis as any).__server = new McpServer({ tools: [saveDocumentsTool, readDocumentTool, manageFoldersTool, exploreStorageTool, searchContentTool, shareContentTool, analyzeDocumentTool, updateSharedLinkTool, removeSharedLinkTool, updateCollaboratorsTool], context: { box, env: process.env } });
           }
           const srv = (globalThis as any).__server as McpServer;
           const result = await srv.handle(data);
@@ -38,6 +53,10 @@ if (transport === 'http') {
       return;
     }
     if (req.method === 'GET' && (req.url === '/events' || req.url === '/sse')) {
+      if (!okAuth()) {
+        res.writeHead(401);
+        return res.end();
+      }
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -77,7 +96,7 @@ if (transport === 'http') {
         const req = JSON.parse(line);
         if (!(globalThis as any).__server) {
           const box = await createBoxClient(process.env);
-          (globalThis as any).__server = new McpServer({ tools: [saveDocumentsTool, readDocumentTool, manageFoldersTool, exploreStorageTool, searchContentTool, shareContentTool, analyzeDocumentTool], context: { box, env: process.env } });
+          (globalThis as any).__server = new McpServer({ tools: [saveDocumentsTool, readDocumentTool, manageFoldersTool, exploreStorageTool, searchContentTool, shareContentTool, analyzeDocumentTool, updateSharedLinkTool, removeSharedLinkTool, updateCollaboratorsTool], context: { box, env: process.env } });
         }
         const srv = (globalThis as any).__server as McpServer;
         const resObj = await srv.handle(req);

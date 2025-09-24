@@ -16,7 +16,10 @@ async function handle(args: any, context: ToolContext) {
 
     return {
       success: true,
-      file: { id: fileId },
+      structuredContent: {
+        file: { id: fileId },
+        text: body
+      },
       content: body
     };
   } catch (err: any) {
@@ -43,6 +46,21 @@ export const readDocumentTool: ToolDefinition = {
       { required: ['fileId'] },
       { required: ['path'] }
     ]
+  },
+  outputSchema: {
+    type: 'object',
+    properties: {
+      file: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          extension: { type: 'string' },
+          size: { type: 'number' }
+        }
+      },
+      text: { type: 'string' }
+    }
   },
   handler: handle
 };

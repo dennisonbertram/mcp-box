@@ -6,6 +6,7 @@ export interface ToolDefinition {
   name: string;
   description: string;
   inputSchema: any;
+  outputSchema?: any;
   handler: ToolHandler;
 }
 

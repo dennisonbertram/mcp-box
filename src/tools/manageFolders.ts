@@ -26,6 +26,14 @@ export const manageFoldersTool: ToolDefinition = {
     },
     required: ['action', 'folders']
   },
+  outputSchema: {
+    type: 'object',
+    properties: {
+      results: { type: 'array', items: { type: 'object' } },
+      success: { type: 'boolean' }
+    },
+    required: ['results', 'success']
+  },
   handler: async (args: any, context: ToolContext) => {
     const results: any[] = [];
     const box = context.box;
@@ -75,9 +83,11 @@ export const manageFoldersTool: ToolDefinition = {
       }
     }
 
+    const ok = results.every((r) => r.success);
     return {
-      success: results.every((r) => r.success),
-      results
+      success: ok,
+      results,
+      structuredContent: { results, success: ok }
     };
   }
 };

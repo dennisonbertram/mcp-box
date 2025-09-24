@@ -5,3 +5,6 @@ export { exploreStorageTool } from './exploreStorage.js';
 export { searchContentTool } from './searchContent.js';
 export { shareContentTool } from './shareContent.js';
 export { analyzeDocumentTool } from './analyzeDocument.js';
+export { updateSharedLinkTool } from './updateSharedLink.js';
+export { removeSharedLinkTool } from './removeSharedLink.js';
+export { updateCollaboratorsTool } from './updateCollaborators.js';

@@ -28,6 +28,28 @@ export const searchContentTool: ToolDefinition = {
     },
     required: ['query']
   },
+  outputSchema: {
+    type: 'object',
+    properties: {
+      totalResults: { type: 'number' },
+      results: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            type: { type: 'string', enum: ['file', 'folder'] },
+            name: { type: 'string' },
+            path: { type: 'string' },
+            size: { type: 'number' },
+            modified: { type: 'string' }
+          },
+          required: ['id', 'type', 'name']
+        }
+      }
+    },
+    required: ['totalResults', 'results']
+  },
   handler: async (args: any, context: ToolContext) => {
     try {
       const res = await context.box.searchContent({
@@ -41,7 +63,7 @@ export const searchContentTool: ToolDefinition = {
         sortBy: args.options?.sortBy || 'relevance',
         direction: args.options?.direction || 'DESC'
       });
-      return { success: true, totalResults: res.totalCount, results: res.entries };
+      return { success: true, structuredContent: { totalResults: res.totalCount, results: res.entries }, totalResults: res.totalCount, results: res.entries };
     } catch (err: any) {
       return { success: false, error: err?.message || String(err) };
     }

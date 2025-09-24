@@ -87,6 +87,16 @@ export const saveDocumentsTool: ToolDefinition = {
     },
     required: ['documents']
   },
+  outputSchema: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean' },
+      saved: { type: 'number' },
+      failed: { type: 'number' },
+      results: { type: 'array', items: { type: 'object' } }
+    },
+    required: ['success', 'saved', 'failed', 'results']
+  },
   handler: handle
 };
 

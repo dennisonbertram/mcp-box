@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "*",
+    "ajv": "^8.17.1",
     "box-node-sdk": "*",
     "dotenv": "*",
     "winston": "*"

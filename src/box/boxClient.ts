@@ -58,6 +58,50 @@ export class InMemoryBoxClient implements IBoxClient {
     return { added };
   }
 
+  async updateSharedLink(params: { itemType: 'file' | 'folder'; itemId: string; access?: 'open' | 'company' | 'collaborators'; password?: string | null; canDownload?: boolean; unsharedAt?: string | null }) {
+    const url = `https://box.mock/shared/${params.itemType}/${params.itemId}`;
+    if (params.itemType === 'file') {
+      const f = this.files.get(params.itemId);
+      if (!f) throw new Error('File not found');
+      f.sharedLink = { url, access: params.access, unsharedAt: params.unsharedAt ?? null };
+      this.files.set(params.itemId, f);
+      return f.sharedLink;
+    } else {
+      const folder = this.folders.get(params.itemId);
+      if (!folder) throw new Error('Folder not found');
+      folder.sharedLink = { url, access: params.access, unsharedAt: params.unsharedAt ?? null };
+      this.folders.set(params.itemId, folder);
+      return folder.sharedLink;
+    }
+  }
+
+  async removeSharedLink(params: { itemType: 'file' | 'folder'; itemId: string }) {
+    if (params.itemType === 'file') {
+      const f = this.files.get(params.itemId);
+      if (f) { delete f.sharedLink; this.files.set(params.itemId, f); }
+    } else {
+      const folder = this.folders.get(params.itemId);
+      if (folder) { delete folder.sharedLink; this.folders.set(params.itemId, folder); }
+    }
+    return { removed: true };
+  }
+
+  async updateCollaborators(params: { itemType: 'file' | 'folder'; itemId: string; updates: { email: string; role?: string; remove?: boolean }[] }) {
+    const updated: any[] = [];
+    for (const u of params.updates) {
+      const idx = this.collaborations.findIndex(c => c.itemType === params.itemType && c.itemId === params.itemId && c.email === u.email);
+      if (idx === -1) continue;
+      if (u.remove) {
+        this.collaborations.splice(idx, 1);
+        updated.push({ email: u.email, removed: true });
+      } else if (u.role) {
+        this.collaborations[idx].role = u.role;
+        updated.push({ email: u.email, role: u.role });
+      }
+    }
+    return { updated };
+  }
+
   async checkFileExists(parentId: string, fileName: string) {
     const found = [...this.files.values()].find((f) => f.parentId === parentId && f.name === fileName);
     return found ? { id: found.id, size: found.size } : null;
