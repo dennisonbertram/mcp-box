@@ -22,7 +22,7 @@ export const updateCollaboratorsTool: ToolDefinition = {
         }
       }
     },
-    anyOf: [ { required: ['itemId','itemType','updates'] }, { required: ['path','itemType','updates'] } ]
+    required: ['itemId', 'itemType', 'updates']
   },
   outputSchema: { type: 'object', properties: { updated: { type: 'array', items: { type: 'object' } } }, required: ['updated'] },
   handler: async (args: any, context: ToolContext) => {

@@ -68,13 +68,10 @@ export const saveDocumentsTool: ToolDefinition = {
         items: {
           type: 'object',
           properties: {
-            content: { type: 'string' },
-            path: { type: 'string' }
+            content: { type: 'string', description: 'Document content to save' },
+            path: { type: 'string', description: 'Destination path in Box' }
           },
-          required: ['path'],
-          oneOf: [
-            { required: ['content'] }
-          ]
+          required: ['path', 'content']
         }
       },
       options: {

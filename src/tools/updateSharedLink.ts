@@ -6,15 +6,15 @@ export const updateSharedLinkTool: ToolDefinition = {
   inputSchema: {
     type: 'object',
     properties: {
-      itemType: { type: 'string', enum: ['file', 'folder'] },
-      itemId: { type: 'string' },
-      path: { type: 'string' },
-      access: { type: 'string', enum: ['open', 'company', 'collaborators'] },
-      password: { type: 'string' },
-      canDownload: { type: 'boolean' },
-      unsharedAt: { type: 'string' }
+      itemType: { type: 'string', enum: ['file', 'folder'], description: 'Type of Box item' },
+      itemId: { type: 'string', description: 'Box item ID' },
+      path: { type: 'string', description: 'Box item path (alternative to itemId)' },
+      access: { type: 'string', enum: ['open', 'company', 'collaborators'], description: 'Access level for shared link' },
+      password: { type: 'string', description: 'Optional password protection' },
+      canDownload: { type: 'boolean', description: 'Allow downloads via shared link' },
+      unsharedAt: { type: 'string', description: 'Expiration date (ISO 8601)' }
     },
-    anyOf: [ { required: ['itemId','itemType'] }, { required: ['path','itemType'] } ]
+    required: ['itemId', 'itemType']
   },
   outputSchema: {
     type: 'object',

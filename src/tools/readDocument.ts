@@ -33,19 +33,16 @@ export const readDocumentTool: ToolDefinition = {
   inputSchema: {
     type: 'object',
     properties: {
-      fileId: { type: 'string' },
-      path: { type: 'string' },
+      fileId: { type: 'string', description: 'Box file ID to read' },
+      path: { type: 'string', description: 'Box file path to read (alternative to fileId)' },
       options: {
         type: 'object',
         properties: {
-          asText: { type: 'boolean', default: true }
+          asText: { type: 'boolean', default: true, description: 'Return content as text (true) or base64 (false)' }
         }
       }
     },
-    oneOf: [
-      { required: ['fileId'] },
-      { required: ['path'] }
-    ]
+    required: ['fileId']
   },
   outputSchema: {
     type: 'object',

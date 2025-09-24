@@ -6,33 +6,29 @@ export const analyzeDocumentTool: ToolDefinition = {
   inputSchema: {
     type: 'object',
     properties: {
-      path: { type: 'string' },
-      fileId: { type: 'string' },
-      paths: { type: 'array', items: { type: 'string' } },
-      fileIds: { type: 'array', items: { type: 'string' } },
-      analysisType: { type: 'string', enum: ['summarize', 'qa', 'extract', 'extract_structured', 'classify', 'translate'] },
+      path: { type: 'string', description: 'Box file path to analyze' },
+      fileId: { type: 'string', description: 'Box file ID to analyze' },
+      paths: { type: 'array', items: { type: 'string' }, description: 'Multiple file paths for batch analysis' },
+      fileIds: { type: 'array', items: { type: 'string' }, description: 'Multiple file IDs for batch analysis' },
+      analysisType: { type: 'string', enum: ['summarize', 'qa', 'extract', 'extract_structured', 'classify', 'translate'], description: 'Type of AI analysis to perform' },
       question: { type: 'string', description: 'Question for Q&A mode' },
       options: {
         type: 'object',
         properties: {
-          includeCitations: { type: 'boolean', default: false },
-          targetLanguage: { type: 'string', description: 'For translate' },
-          dialogueHistory: { type: 'array', items: { type: 'object', properties: { prompt: { type: 'string' }, answer: { type: 'string' } } } },
+          includeCitations: { type: 'boolean', default: false, description: 'Include source citations in response' },
+          targetLanguage: { type: 'string', description: 'Target language for translation' },
+          dialogueHistory: { type: 'array', items: { type: 'object', properties: { prompt: { type: 'string' }, answer: { type: 'string' } } }, description: 'Previous conversation history' },
           fields: {
             type: 'array',
-            items: { type: 'object', properties: { key: { type: 'string' }, description: { type: 'string' } }, required: ['key'] }
+            items: { type: 'object', properties: { key: { type: 'string' }, description: { type: 'string' } }, required: ['key'] },
+            description: 'Fields to extract for structured extraction'
           },
-          metadataTemplate: { type: 'object', properties: { templateKey: { type: 'string' }, scope: { type: 'string' } } },
-          summaryFocus: { type: 'string' }
+          metadataTemplate: { type: 'object', properties: { templateKey: { type: 'string' }, scope: { type: 'string' } }, description: 'Metadata template for structured extraction' },
+          summaryFocus: { type: 'string', description: 'Specific focus area for summarization' }
         }
       }
     },
-    oneOf: [
-      { required: ['analysisType', 'fileId'] },
-      { required: ['analysisType', 'path'] },
-      { required: ['analysisType', 'fileIds'] },
-      { required: ['analysisType', 'paths'] }
-    ]
+    required: ['analysisType', 'fileId']
   },
   outputSchema: {
     type: 'object',

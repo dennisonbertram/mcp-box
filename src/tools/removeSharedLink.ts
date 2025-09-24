@@ -6,11 +6,11 @@ export const removeSharedLinkTool: ToolDefinition = {
   inputSchema: {
     type: 'object',
     properties: {
-      itemType: { type: 'string', enum: ['file', 'folder'] },
-      itemId: { type: 'string' },
-      path: { type: 'string' }
+      itemType: { type: 'string', enum: ['file', 'folder'], description: 'Type of Box item' },
+      itemId: { type: 'string', description: 'Box item ID' },
+      path: { type: 'string', description: 'Box item path (alternative to itemId)' }
     },
-    anyOf: [ { required: ['itemId','itemType'] }, { required: ['path','itemType'] } ]
+    required: ['itemId', 'itemType']
   },
   outputSchema: { type: 'object', properties: { removed: { type: 'boolean' } }, required: ['removed'] },
   handler: async (args: any, context: ToolContext) => {
