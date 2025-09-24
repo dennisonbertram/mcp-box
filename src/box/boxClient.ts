@@ -1,13 +1,15 @@
 import { BoxClient as IBoxClient } from '../types.js';
 
 export class InMemoryBoxClient implements IBoxClient {
-  private folders: Map<string, { id: string; parentId: string | null; name: string; path: string; description?: string; modified: string }>; 
-  private files: Map<string, { id: string; parentId: string; name: string; size: number; content: Buffer; modified: string }>; 
+  private folders: Map<string, { id: string; parentId: string | null; name: string; path: string; description?: string; modified: string; sharedLink?: { url: string; access?: string; unsharedAt?: string | null } }>; 
+  private files: Map<string, { id: string; parentId: string; name: string; size: number; content: Buffer; modified: string; sharedLink?: { url: string; access?: string; unsharedAt?: string | null } }>; 
+  private collaborations: Array<{ itemType: 'file' | 'folder'; itemId: string; email: string; role: string }>; 
 
   constructor() {
     this.folders = new Map();
     this.files = new Map();
     this.folders.set('0', { id: '0', parentId: null, name: '', path: '/', modified: new Date().toISOString() });
+    this.collaborations = [];
   }
 
   async ensureFolderPath(path: string, description?: string): Promise<string> {
@@ -28,6 +30,32 @@ export class InMemoryBoxClient implements IBoxClient {
       currentId = id;
     }
     return currentId;
+  }
+
+  async createSharedLink(params: { itemType: 'file' | 'folder'; itemId: string; access?: 'open' | 'company' | 'collaborators'; password?: string | null; canDownload?: boolean; unsharedAt?: string | null }) {
+    const url = `https://box.mock/shared/${params.itemType}/${params.itemId}`;
+    if (params.itemType === 'file') {
+      const f = this.files.get(params.itemId);
+      if (!f) throw new Error('File not found');
+      f.sharedLink = { url, access: params.access, unsharedAt: params.unsharedAt ?? null };
+      this.files.set(params.itemId, f);
+      return f.sharedLink;
+    } else {
+      const folder = this.folders.get(params.itemId);
+      if (!folder) throw new Error('Folder not found');
+      folder.sharedLink = { url, access: params.access, unsharedAt: params.unsharedAt ?? null };
+      this.folders.set(params.itemId, folder);
+      return folder.sharedLink;
+    }
+  }
+
+  async addCollaborators(params: { itemType: 'file' | 'folder'; itemId: string; collaborators: { email: string; role: string }[]; notify?: boolean }) {
+    const added: { email: string; role: string }[] = [];
+    for (const c of params.collaborators) {
+      this.collaborations.push({ itemType: params.itemType, itemId: params.itemId, email: c.email, role: c.role });
+      added.push({ email: c.email, role: c.role });
+    }
+    return { added };
   }
 
   async checkFileExists(parentId: string, fileName: string) {

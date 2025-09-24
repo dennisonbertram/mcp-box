@@ -137,6 +137,31 @@ export class RealBoxClient implements IBoxClient {
     return Buffer.concat(chunks);
   }
 
+  async createSharedLink(params: { itemType: 'file' | 'folder'; itemId: string; access?: 'open' | 'company' | 'collaborators'; password?: string | null; canDownload?: boolean; unsharedAt?: string | null }) {
+    if (params.itemType === 'file') {
+      const body: any = { sharedLink: { access: params.access, password: params.password ?? undefined, unsharedAt: params.unsharedAt ?? undefined, permissions: { canDownload: params.canDownload } } };
+      const res: any = await (this.client.sharedLinksFiles as any).addShareLinkToFile(params.itemId, body, { fields: 'shared_link' });
+      return { url: res.sharedLink?.url, access: res.sharedLink?.access, unsharedAt: res.sharedLink?.unsharedAt };
+    } else {
+      const body: any = { sharedLink: { access: params.access, password: params.password ?? undefined, unsharedAt: params.unsharedAt ?? undefined, permissions: { canDownload: params.canDownload } } };
+      const res: any = await (this.client.sharedLinksFolders as any).addShareLinkToFolder(params.itemId, body, { fields: 'shared_link' });
+      return { url: res.sharedLink?.url, access: res.sharedLink?.access, unsharedAt: res.sharedLink?.unsharedAt };
+    }
+  }
+
+  async addCollaborators(params: { itemType: 'file' | 'folder'; itemId: string; collaborators: { email: string; role: string }[]; notify?: boolean }) {
+    const added: { email: string; id?: string; role: string }[] = [];
+    for (const c of params.collaborators) {
+      const res: any = await (this.client.userCollaborations as any).createCollaboration({
+        item: { type: params.itemType, id: params.itemId },
+        accessibleBy: { type: 'user', login: c.email },
+        role: c.role
+      }, { queryParams: { notify: params.notify } });
+      added.push({ email: c.email, id: res.id, role: c.role });
+    }
+    return { added };
+  }
+
   async searchContent(params: {
     query?: string;
     type?: 'file' | 'folder' | 'all';

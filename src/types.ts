@@ -36,6 +36,22 @@ export interface BoxClient {
     sortBy?: 'relevance' | 'modified_at';
     direction?: 'DESC' | 'ASC';
   }): Promise<{ totalCount: number; entries: { id: string; type: 'file' | 'folder'; name: string; path?: string; size?: number; modified?: string }[] }>;
+
+  createSharedLink(params: {
+    itemType: 'file' | 'folder';
+    itemId: string;
+    access?: 'open' | 'company' | 'collaborators';
+    password?: string | null;
+    canDownload?: boolean;
+    unsharedAt?: string | null; // ISO timestamp
+  }): Promise<{ url?: string; access?: string; unsharedAt?: string | null }>;
+
+  addCollaborators(params: {
+    itemType: 'file' | 'folder';
+    itemId: string;
+    collaborators: { email: string; role: 'viewer' | 'editor' | 'co-owner' | 'previewer' | 'uploader' | 'previewer uploader' | 'viewer uploader' }[];
+    notify?: boolean;
+  }): Promise<{ added: { email: string; id?: string; role: string }[] }>;
 }
 
 export interface JsonRpcRequest {
