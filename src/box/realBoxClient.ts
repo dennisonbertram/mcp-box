@@ -162,6 +162,44 @@ export class RealBoxClient implements IBoxClient {
     return { added };
   }
 
+  async aiTextGen(params: { prompt: string; fileId: string; dialogueHistory?: { prompt: string; answer?: string }[] }) {
+    const res: any = await (this.client.ai as any).createAiTextGen({
+      prompt: params.prompt,
+      items: [{ id: params.fileId, type: 'file' }],
+      dialogueHistory: params.dialogueHistory
+    });
+    return { answer: res.answer, createdAt: res.createdAt };
+  }
+
+  async aiAsk(params: { prompt: string; fileIds: string[]; mode?: 'single_item_qa' | 'multiple_item_qa'; includeCitations?: boolean; dialogueHistory?: { prompt: string; answer?: string }[] }) {
+    const res: any = await (this.client.ai as any).createAiAsk({
+      mode: params.mode || (params.fileIds.length > 1 ? 'multiple_item_qa' : 'single_item_qa'),
+      prompt: params.prompt,
+      items: params.fileIds.map((id) => ({ id, type: 'file' })),
+      includeCitations: params.includeCitations,
+      dialogueHistory: params.dialogueHistory
+    });
+    return { answer: res?.answer, createdAt: res?.createdAt, citations: res?.citations };
+  }
+
+  async aiExtract(params: { prompt: string; fileIds: string[] }) {
+    const res: any = await (this.client.ai as any).createAiExtract({
+      prompt: params.prompt,
+      items: params.fileIds.map((id) => ({ id, type: 'file' }))
+    });
+    return { answer: res.answer, createdAt: res.createdAt };
+  }
+
+  async aiExtractStructured(params: { fileIds: string[]; fields?: { key: string; description?: string; displayName?: string; prompt?: string; type?: string; options?: { key: string }[] }[]; metadataTemplate?: { templateKey?: string; scope?: string } }) {
+    const body: any = {
+      items: params.fileIds.map((id) => ({ id, type: 'file' })),
+      metadataTemplate: params.metadataTemplate,
+      fields: params.fields
+    };
+    const res: any = await (this.client.ai as any).createAiExtractStructured(body);
+    return { fields: (res as any).fields, raw: res };
+  }
+
   async searchContent(params: {
     query?: string;
     type?: 'file' | 'folder' | 'all';

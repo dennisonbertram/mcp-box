@@ -252,4 +252,32 @@ export class InMemoryBoxClient implements IBoxClient {
     const limit = params.limit || 20;
     return { totalCount: entries.length, entries: entries.slice(0, limit) };
   }
+
+  async aiTextGen(params: { prompt: string; fileId: string }) {
+    const file = this.files.get(params.fileId);
+    const content = file ? file.content.toString('utf8') : '';
+    const answer = `Summary: ${content.slice(0, 120)}${content.length > 120 ? '…' : ''}`;
+    return { answer, createdAt: new Date().toISOString() };
+  }
+
+  async aiAsk(params: { prompt: string; fileIds: string[] }) {
+    const id = params.fileIds[0];
+    const file = id ? this.files.get(id) : undefined;
+    const snippet = file ? file.content.toString('utf8').slice(0, 60) : '';
+    const answer = `Q: ${params.prompt}\nA: Based on: ${snippet}`;
+    return { answer, createdAt: new Date().toISOString(), citations: [] } as any;
+  }
+
+  async aiExtract(params: { prompt: string; fileIds: string[] }) {
+    const answer = `Extracted per prompt: ${params.prompt}`;
+    return { answer, createdAt: new Date().toISOString() };
+  }
+
+  async aiExtractStructured(params: { fileIds: string[]; fields?: { key: string }[]; metadataTemplate?: { templateKey?: string; scope?: string } }) {
+    const result: Record<string, any> = {};
+    for (const f of params.fields || []) {
+      result[f.key] = null;
+    }
+    return { fields: result, raw: { template: params.metadataTemplate } };
+  }
 }

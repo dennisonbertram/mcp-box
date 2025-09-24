@@ -7,6 +7,7 @@ import { manageFoldersTool } from './tools/manageFolders.js';
 import { exploreStorageTool } from './tools/exploreStorage.js';
 import { searchContentTool } from './tools/searchContent.js';
 import { shareContentTool } from './tools/shareContent.js';
+import { analyzeDocumentTool } from './tools/analyzeDocument.js';
 
 process.stdin.setEncoding('utf8');
 let buffer = '';
@@ -28,7 +29,7 @@ process.stdin.on('data', async (chunk) => {
       if (!(globalThis as any).__server) {
         (globalThis as any).__server = await (async () => {
           const box = await createBoxClient(process.env);
-          return new McpServer({ tools: [saveDocumentsTool, readDocumentTool, manageFoldersTool, exploreStorageTool, searchContentTool, shareContentTool], context: { box, env: process.env } });
+          return new McpServer({ tools: [saveDocumentsTool, readDocumentTool, manageFoldersTool, exploreStorageTool, searchContentTool, shareContentTool, analyzeDocumentTool], context: { box, env: process.env } });
         })();
       }
       const srv = (globalThis as any).__server as McpServer;

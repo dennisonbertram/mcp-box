@@ -52,6 +52,11 @@ export interface BoxClient {
     collaborators: { email: string; role: 'viewer' | 'editor' | 'co-owner' | 'previewer' | 'uploader' | 'previewer uploader' | 'viewer uploader' }[];
     notify?: boolean;
   }): Promise<{ added: { email: string; id?: string; role: string }[] }>;
+
+  aiTextGen(params: { prompt: string; fileId: string; dialogueHistory?: { prompt: string; answer?: string }[] }): Promise<{ answer: string; createdAt?: string }>;
+  aiAsk(params: { prompt: string; fileIds: string[]; mode?: 'single_item_qa' | 'multiple_item_qa'; includeCitations?: boolean; dialogueHistory?: { prompt: string; answer?: string }[] }): Promise<{ answer?: string; citations?: any[]; createdAt?: string }>;
+  aiExtract(params: { prompt: string; fileIds: string[] }): Promise<{ answer: string; createdAt?: string }>;
+  aiExtractStructured(params: { fileIds: string[]; fields?: { key: string; description?: string; displayName?: string; prompt?: string; type?: string; options?: { key: string }[] }[]; metadataTemplate?: { templateKey?: string; scope?: string } }): Promise<{ fields?: Record<string, any>; raw?: any }>;
 }
 
 export interface JsonRpcRequest {
